@@ -1,0 +1,12 @@
+h1. DatabaseRecorder
+
+This code is an experiment in recording and replaying a database connection in order to speed up tests.
+
+See these posts for the initial idea and results:
+
+* "Why exactly don't we stub that database?":http://svenfuchs.com/2010/11/24/why-exactly-don-t-we-stub-that-database
+* "DatabaseRecorder - recording and replaying the database connection":http://svenfuchs.com/2011/2/9/databaserecorder-recording-and-replaying-the-database-connection
+
+TLDR: It's currently not worth it because there's no performance gain.
+
+If you're interested in picking this up or have any questions just drop me a note! :)
