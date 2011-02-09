@@ -7,7 +7,7 @@ class DatabaseRecorderTest < Test::Unit::TestCase
   end
 
   def teardown
-    DatabaseRecorder.stop!
+    DatabaseRecorder.stop! rescue nil
     super
   end
 
@@ -30,8 +30,12 @@ class DatabaseRecorderTest < Test::Unit::TestCase
       entries = Entry.all                    # should have recorded a select query for state #2
       assert_equal 2, entries.size
       assert entries.first.is_a?(Entry)
-
+puts
+p DatabaseRecorder.instance.instance_variable_get(:@results)
+puts
       DatabaseRecorder.save
+      DatabaseRecorder.stop!
+      DatabaseRecorder.start!
       DatabaseRecorder.replay!
     end
   end
@@ -43,16 +47,18 @@ class DatabaseRecorderTest < Test::Unit::TestCase
       assert_equal 3, Entry.create!.id
 
       DatabaseRecorder.save
+      DatabaseRecorder.stop!
+      DatabaseRecorder.start!
       DatabaseRecorder.replay!
     end
   end
 
   test 'storing and reloading state' do
     Entry.all
-    states = recorder.send(:states)
+    results = recorder.send(:results)
     recorder.save
-    recorder.instance_variable_set(:@states, nil)
+    recorder.instance_variable_set(:@results, nil)
     recorder.load
-    assert_equal recorder.send(:states), states
+    assert_equal recorder.send(:results), results
   end
 end

@@ -6,17 +6,17 @@ class DatabaseRecorder
     def start!
       class << ActiveRecord::Base.connection
         def execute(sql, name = nil)
-          DatabaseRecorder.instance.capture(sql) { super }
+          DatabaseRecorder.instance.capture { super }
         end
       end
 
       class << ActiveRecord::Base.connection.instance_variable_get(:@connection)
         def changes
-          DatabaseRecorder.instance.capture("(SELECT) #{self.class.name}.changes") { super }
+          DatabaseRecorder.instance.capture { super }
         end
 
         def last_insert_row_id
-          DatabaseRecorder.instance.capture("(SELECT) #{self.class.name}.last_insert_row_id") { super }
+          DatabaseRecorder.instance.capture { super }
         end
       end
     end
@@ -30,6 +30,7 @@ class DatabaseRecorder
       end
 
       class << ActiveRecord::Base.connection.instance_variable_get(:@connection)
+        remove_method(:changes)
         remove_method(:last_insert_row_id)
       end
     end

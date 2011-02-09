@@ -1,7 +1,6 @@
 require 'database_recorder/active_record'
 
 class DatabaseRecorder
-  autoload :States, 'database_recorder/states'
   autoload :Serializer, 'database_recorder/serializer'
   autoload :Store, 'database_recorder/store'
 
@@ -22,13 +21,16 @@ class DatabaseRecorder
     end
   end
 
-  def capture(sql)
-    replay? ? replaying(sql) { yield } : recording(sql) { yield }
+  def capture
+    if replay?
+      results.shift
+    else
+      yield.tap { |result| results << result }
+    end
   end
 
   def replay!
     self.load
-    states.reset!
     @replay = true
   end
 
@@ -37,34 +39,20 @@ class DatabaseRecorder
   end
 
   def save
-    store.save(states)
+    store.save(results)
   end
 
   def load
-    @states = store.load
+    @results = store.load
   end
 
   protected
 
-    def states
-      @states ||= States.new
+    def results
+      @results ||= []
     end
 
     def store
       @store ||= Store.new(Serializer.new)
-    end
-
-    def recording(sql)
-      states.create! # unless idempotent?(sql)
-      yield.tap { |result| states.current[sql] = result }
-    end
-
-    def replaying(sql)
-      states.next! # unless idempotent?(sql)
-      states.current[sql]
-    end
-
-    def idempotent?(sql)
-      sql !~ /^\s*(?:INSERT|UPDATE|DELETE)/
     end
 end
